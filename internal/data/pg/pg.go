@@ -33,3 +33,17 @@ func (u *userU) Insert(user data.User) (*data.User, error) {
 	user.ID = id
 	return &user, nil
 }
+
+func (u *userU) Get(username string) (*data.User, error) {
+	query := sq.Select("*").
+		From("users").
+		Where(sq.Eq{"username": username})
+
+	var user data.User
+	err := u.db.Get(&user, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}

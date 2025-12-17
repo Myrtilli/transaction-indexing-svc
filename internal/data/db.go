@@ -2,6 +2,7 @@ package data
 
 type Userdb interface {
 	Insert(User) (*User, error)
+	Get(username string) (*User, error)
 }
 
 type User struct {
