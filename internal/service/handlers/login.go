@@ -14,6 +14,7 @@ import (
 func Login(w http.ResponseWriter, r *http.Request) {
 	logger := Log(r)
 	db := DB(r)
+	key := JWT(r)
 
 	var req requests.LoginRequest
 
@@ -46,7 +47,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GenerateJWT(user.Username)
+	token, err := auth.GenerateJWT(user.Username, []byte(key.JWTKey()))
 	if err != nil {
 		Log(r).WithError(err).Error("failed to generate jwt")
 		ape.RenderErr(w, problems.InternalError())

@@ -6,9 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("12345678901234567890123456789012")
-
-func GenerateJWT(username string) (string, error) {
+func GenerateJWT(username string, key []byte) (string, error) {
 	claims := jwt.MapClaims{
 		"username": username,
 		"exp":      time.Now().Add(time.Hour * 24).Unix(),
@@ -16,6 +14,5 @@ func GenerateJWT(username string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	return token.SignedString(jwtKey)
+	return token.SignedString(key)
 }

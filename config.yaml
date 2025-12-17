@@ -14,3 +14,6 @@ cop:
   upstream: "http://..."
   service_name: transaction-indexing-svc
   service_port: 80
+
+jwt_key:
+  key: 32_character_jwtkey_for_token

@@ -17,8 +17,10 @@ func (s *service) router(cfg config.Config) chi.Router {
 		ape.CtxMiddleware(
 			handlers.CtxLog(s.log),
 			handlers.CtxDB(pg.NewMasterQ(cfg.DB())),
+			handlers.CtxJWT(cfg),
 		),
 	)
+
 	r.Route("/integrations/transaction-indexing-svc", func(r chi.Router) {
 		r.Post("/login", handlers.Login)
 		r.Post("/register", handlers.Register)

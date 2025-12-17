@@ -13,6 +13,7 @@ type Config interface {
 	pgdb.Databaser
 	types.Copuser
 	comfig.Listenerer
+	JWT
 }
 
 type config struct {
@@ -21,6 +22,7 @@ type config struct {
 	types.Copuser
 	comfig.Listenerer
 	getter kv.Getter
+	JWT
 }
 
 func New(getter kv.Getter) Config {
@@ -30,5 +32,6 @@ func New(getter kv.Getter) Config {
 		Copuser:    copus.NewCopuser(getter),
 		Listenerer: comfig.NewListenerer(getter),
 		Logger:     comfig.NewLogger(getter, comfig.LoggerOpts{}),
+		JWT:        NewJWT(getter),
 	}
 }
