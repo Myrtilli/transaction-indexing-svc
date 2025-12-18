@@ -12,9 +12,10 @@ import (
 type ctxKey int
 
 const (
-	logCtxKey ctxKey = iota
-	dbCtxKey  ctxKey = iota
-	jwtCtxKey ctxKey = iota
+	logCtxKey      ctxKey = iota
+	dbCtxKey       ctxKey = iota
+	jwtCtxKey      ctxKey = iota
+	usernameCtxKey ctxKey = iota
 )
 
 func CtxLog(entry *logan.Entry) func(context.Context) context.Context {
@@ -43,6 +44,18 @@ func CtxJWT(cfg config.Config) func(context.Context) context.Context {
 	}
 }
 
-func JWT(r *http.Request) config.Config {
-	return r.Context().Value(jwtCtxKey).(config.Config)
+func JWT(r *http.Request) string {
+	cfg, ok := r.Context().Value(jwtCtxKey).(config.Config)
+	if !ok {
+		return ""
+	}
+	return cfg.JWTKey()
+}
+
+func Username(r *http.Request) string {
+	val, ok := r.Context().Value(usernameCtxKey).(string)
+	if !ok {
+		return ""
+	}
+	return val
 }

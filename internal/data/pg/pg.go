@@ -47,3 +47,38 @@ func (u *userU) Get(username string) (*data.User, error) {
 
 	return &user, nil
 }
+
+func (u *userU) GetByUsername(username string) (*data.User, error) {
+	query := sq.Select("*").
+		From("users").
+		Where(sq.Eq{"username": username})
+
+	var user data.User
+	err := u.db.Get(&user, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func newAddressdb(db *pgdb.DB) data.Addressdb {
+	return &addressA{
+		db:  db,
+		sql: sq.StatementBuilder,
+	}
+}
+
+type addressA struct {
+	db  *pgdb.DB
+	sql sq.StatementBuilderType
+}
+
+func (a *addressA) Insert(address data.Address) error {
+	query := sq.Insert("addresses").
+		Columns("user_id", "address").
+		Values(address.UserID, address.Address)
+
+	err := a.db.Exec(query)
+	return err
+}

@@ -22,3 +22,7 @@ func (m *masterQ) New() data.MasterQ {
 func (m *masterQ) User() data.Userdb {
 	return newUserdb(m.db)
 }
+
+func (m *masterQ) Address() data.Addressdb {
+	return newAddressdb(m.db)
+}

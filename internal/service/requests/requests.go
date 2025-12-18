@@ -44,3 +44,19 @@ func (r *LoginRequest) Validate() error {
 	}
 	return nil
 }
+
+type NewAddressRequest struct {
+	Address string `json:"address"`
+}
+
+func (r *NewAddressRequest) Validate() error {
+	address := strings.TrimSpace(r.Address)
+	if address == "" {
+		return errors.New("address is required")
+	}
+
+	if len(address) < 26 {
+		return errors.New("invalid address format")
+	}
+	return nil
+}

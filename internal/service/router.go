@@ -24,6 +24,11 @@ func (s *service) router(cfg config.Config) chi.Router {
 	r.Route("/integrations/transaction-indexing-svc", func(r chi.Router) {
 		r.Post("/login", handlers.Login)
 		r.Post("/register", handlers.Register)
+
+		r.Route("/", func(r chi.Router) {
+			r.Use(handlers.AuthRequired)
+			r.Post("/addresses", handlers.NewAddress)
+		})
 	})
 
 	return r
