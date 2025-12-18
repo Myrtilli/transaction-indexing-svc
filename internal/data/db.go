@@ -14,6 +14,7 @@ type User struct {
 
 type Addressdb interface {
 	Insert(Address) error
+	Select(userID int64) ([]Address, error)
 }
 
 type Address struct {

@@ -28,6 +28,7 @@ func (s *service) router(cfg config.Config) chi.Router {
 		r.Route("/", func(r chi.Router) {
 			r.Use(handlers.AuthRequired)
 			r.Post("/addresses", handlers.NewAddress)
+			r.Get("/addresses", handlers.GetAddresses)
 		})
 	})
 

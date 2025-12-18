@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS addresses (
 CREATE INDEX IF NOT EXISTS idx_addresses_user_id ON addresses(user_id);
 
 -- +migrate Down
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS addresses;
 DROP INDEX IF EXISTS idx_addresses_user_id;
+DROP TABLE IF EXISTS users;

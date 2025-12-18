@@ -82,3 +82,17 @@ func (a *addressA) Insert(address data.Address) error {
 	err := a.db.Exec(query)
 	return err
 }
+
+func (a *addressA) Select(userID int64) ([]data.Address, error) {
+	query := sq.Select("*").
+		From("addresses").
+		Where(sq.Eq{"user_id": userID})
+
+	var addresses []data.Address
+	err := a.db.Select(&addresses, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return addresses, nil
+}
