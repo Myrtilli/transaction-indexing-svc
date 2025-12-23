@@ -14,6 +14,7 @@ type Config interface {
 	types.Copuser
 	comfig.Listenerer
 	JWT
+	Bitcoin
 }
 
 type config struct {
@@ -23,6 +24,7 @@ type config struct {
 	comfig.Listenerer
 	getter kv.Getter
 	JWT
+	Bitcoin
 }
 
 func New(getter kv.Getter) Config {
@@ -33,5 +35,6 @@ func New(getter kv.Getter) Config {
 		Listenerer: comfig.NewListenerer(getter),
 		Logger:     comfig.NewLogger(getter, comfig.LoggerOpts{}),
 		JWT:        NewJWT(getter),
+		Bitcoin:    NewBitcoin(getter),
 	}
 }
