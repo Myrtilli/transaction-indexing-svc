@@ -1,55 +1,17 @@
 package indexer
 
 import (
-	"context"
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/data"
 	"github.com/Myrtilli/transaction-indexing-svc/internal/indexer/bitcoin"
 )
 
-type Config struct {
-	MaxReorgDepth int
-	PollInterval  time.Duration
-}
-
-type Indexer struct {
-	db        data.MasterQ
-	rpcClient *bitcoin.RPCClient
-	undoLog   *UndoLog
-	cfg       Config
-}
-
-func New(db data.MasterQ, rpc *bitcoin.RPCClient, cfg Config) *Indexer {
-	return &Indexer{
-		db:        db,
-		rpcClient: rpc,
-		undoLog:   NewUndoLog(),
-		cfg:       cfg,
-	}
-}
-
-func (i *Indexer) Run(ctx context.Context) {
-	ticker := time.NewTicker(i.cfg.PollInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			log.Println("Indexer stopped")
-			return
-		case <-ticker.C:
-			i.SyncNextBlock()
-		}
-	}
-}
-
 func (i *Indexer) SyncNextBlock() {
 	tip, err := i.db.BlockHeader().GetLast()
 	if err != nil {
-		log.Printf("failed to get tip: %v", err)
+		i.logger.WithError(err).Error("failed to get tip")
 		return
 	}
 
@@ -66,19 +28,13 @@ func (i *Indexer) SyncNextBlock() {
 
 	header, err := i.rpcClient.GetBlockHeader(blockHash)
 	if err != nil {
-		log.Printf("failed to fetch header %d: %v", nextHeight, err)
-		return
-	}
-
-	if tip != nil && header.PreviousHash != tip.BlockHash {
-		log.Printf("Reorg detected at height %d!", nextHeight)
-		i.HandleReorg(nextHeight)
+		i.logger.WithField("height", nextHeight).WithError(err).Error("failed to fetch header")
 		return
 	}
 
 	txs, err := i.rpcClient.GetBlock(blockHash)
 	if err != nil {
-		log.Printf("failed to fetch block txs: %v", err)
+		i.logger.WithError(err).Error("failed to fetch block txs")
 		return
 	}
 
@@ -97,7 +53,7 @@ func (i *Indexer) processBlock(header *bitcoin.BlockHeader, txs []bitcoin.Transa
 		TransactionNum: header.TransactionNum,
 	})
 	if err != nil {
-		log.Printf("DATABASE ERROR: failed to insert block header: %v", err)
+		i.logger.WithError(err).Error("failed to insert block header")
 		return
 	}
 
@@ -114,18 +70,20 @@ func (i *Indexer) processBlock(header *bitcoin.BlockHeader, txs []bitcoin.Transa
 		if tracked {
 			proof, err := i.rpcClient.GetTxOutProof(tx.TxID, header.BlockHash)
 
+			entry := i.logger.WithField("tx_id", tx.TxID)
+
 			if err == nil && bitcoin.VerifyMerkleProof(tx.TxID, [][]byte{proof}, header.MerkleRoot) {
-				log.Printf("Verified proof for tx: %s", tx.TxID)
+				entry.Info("verified proof for tx")
 			} else {
-				log.Printf("Note: Skipping strict Merkle check for tx: %s (Regtest mode)", tx.TxID)
+				entry.Warn("skipping strict Merkle check for tx (Regtest mode)")
 			}
 
 			i.updateDatabase(tx, header)
-			log.Printf("SUCCESS: Indexed transaction %s", tx.TxID)
+			entry.Info("indexed transaction")
 		}
 	}
 
-	log.Printf("SUCCESS: Block %d indexed", header.Height)
+	i.logger.WithField("height", header.Height).Info("block indexed")
 }
 
 func (i *Indexer) getAddrFromOutput(out bitcoin.TxOutput) string {
@@ -176,7 +134,7 @@ func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHe
 			CreatedAt:   time.Now(),
 		})
 		if err != nil {
-			log.Printf("DB ERROR (Tx History): %v", err)
+			i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert tx history")
 		}
 
 		err = i.db.UTXO().Insert(data.UTXO{
@@ -186,14 +144,8 @@ func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHe
 			Amount:      int64(out.Value * 1e8),
 			BlockHeight: header.Height,
 		})
-
-		if err == nil {
-			i.undoLog.Add(UndoAction{
-				BlockHeight: header.Height,
-				Action:      "create_utxo",
-				TxID:        tx.TxID,
-				Vout:        out.Vout,
-			})
+		if err != nil {
+			i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert utxo")
 		}
 	}
 }
