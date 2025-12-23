@@ -49,14 +49,12 @@ type NewAddressRequest struct {
 	Address string `json:"address"`
 }
 
-func (r *NewAddressRequest) Validate() error {
-	address := strings.TrimSpace(r.Address)
-	if address == "" {
-		return errors.New("address is required")
+func (r NewAddressRequest) Validate() error {
+	if strings.TrimSpace(r.Address) == "" {
+		return errors.New("address cannot be empty")
 	}
-
-	if len(address) < 26 {
-		return errors.New("invalid address format")
+	if len(r.Address) < 26 {
+		return errors.New("address is too short")
 	}
 	return nil
 }

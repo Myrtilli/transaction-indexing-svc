@@ -18,6 +18,7 @@ func (s *service) router(cfg config.Config) chi.Router {
 			handlers.CtxLog(s.log),
 			handlers.CtxDB(pg.NewMasterQ(cfg.DB())),
 			handlers.CtxJWT(cfg),
+			handlers.CtxIndexer(s.indexer),
 		),
 	)
 
@@ -25,10 +26,16 @@ func (s *service) router(cfg config.Config) chi.Router {
 		r.Post("/login", handlers.Login)
 		r.Post("/register", handlers.Register)
 
-		r.Route("/", func(r chi.Router) {
+		r.Route("/addresses", func(r chi.Router) {
 			r.Use(handlers.AuthRequired)
-			r.Post("/addresses", handlers.NewAddress)
-			r.Get("/addresses", handlers.GetAddresses)
+			r.Post("/", handlers.NewAddress)
+			r.Get("/", handlers.GetAddresses)
+
+			r.Route("/{address}", func(r chi.Router) {
+				r.Get("/txs", handlers.TransactionHistoryByAddress)
+				r.Get("/utxos", handlers.ActiveUTXOsByAddress)
+				r.Get("/balance", handlers.GetBalance)
+			})
 		})
 	})
 

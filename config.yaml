@@ -17,3 +17,9 @@ cop:
 
 jwt_key:
   key: 32_character_jwtkey_for_token
+
+bitcoin:
+  url: "url"
+  user: "user"
+  pass: "password"
+  poll_interval: "5s"
