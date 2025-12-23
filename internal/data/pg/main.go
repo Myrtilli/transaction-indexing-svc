@@ -26,3 +26,21 @@ func (m *masterQ) User() data.Userdb {
 func (m *masterQ) Address() data.Addressdb {
 	return newAddressdb(m.db)
 }
+
+func (m *masterQ) BlockHeader() data.BlockHeaderdb {
+	return newBlockHeaderdb(m.db)
+}
+
+func (m *masterQ) Transaction() data.Transactiondb {
+	return newTransactiondb(m.db)
+}
+
+func (m *masterQ) UTXO() data.UTXOdb {
+	return newUTXOdb(m.db)
+}
+
+func (m *masterQ) NewTransaction(fn func() error) error {
+	return m.db.Transaction(func() error {
+		return fn()
+	})
+}
