@@ -23,6 +23,7 @@ func NewAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := req.Validate(); err != nil {
+		logger.WithError(err).Error("invalid request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
