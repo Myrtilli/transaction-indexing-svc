@@ -45,7 +45,7 @@ func newService(cfg config.Config) *service {
 	db := pg.NewMasterQ(cfg.DB())
 	rpc := bitcoin.NewRPCClient(cfg.NodeURL(), cfg.NodeUser(), cfg.NodePass())
 
-	idx := indexer.New(db, rpc, indexer.Config{
+	idx := indexer.New(cfg.Log(), db, rpc, indexer.Config{
 		MaxReorgDepth: 6,
 		PollInterval:  cfg.IndexerPollInterval(),
 	})
