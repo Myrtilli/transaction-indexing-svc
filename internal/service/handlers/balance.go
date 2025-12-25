@@ -13,13 +13,33 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 	logger := Log(r).WithField("handler", "GetBalance")
 	db := DB(r)
 	addressStr := chi.URLParam(r, "address")
+	userID := UserID(r)
 
-	addr, err := db.Address().GetByAddress(addressStr)
+	username, ok := r.Context().Value(usernameCtxKey).(string)
+	if !ok {
+		logger.Error("username not found in context")
+		ape.RenderErr(w, problems.Unauthorized())
+		return
+	}
+
+	userRecord, err := db.User().GetByUsername(username)
+	if err != nil {
+		logger.WithError(err).Error("failed to get user from db")
+		ape.RenderErr(w, problems.InternalError())
+		return
+	}
+	if userRecord == nil {
+		ape.RenderErr(w, problems.Unauthorized())
+		return
+	}
+
+	addr, err := db.Address().GetByAddressUserID(addressStr, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get address")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
+
 	if addr == nil {
 		ape.RenderErr(w, problems.NotFound())
 		return

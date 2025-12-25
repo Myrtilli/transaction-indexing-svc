@@ -13,8 +13,9 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 	logger := Log(r)
 	db := DB(r)
 	addressStr := chi.URLParam(r, "address")
+	userID := UserID(r)
 
-	addr, err := db.Address().GetByAddress(addressStr)
+	addr, err := db.Address().GetByAddressUserID(addressStr, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get address from DB")
 		ape.RenderErr(w, problems.InternalError())

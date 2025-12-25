@@ -12,8 +12,9 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 	logger := Log(r)
 	db := DB(r)
 	addressStr := chi.URLParam(r, "address")
+	userID := UserID(r)
 
-	addr, _ := db.Address().GetByAddress(addressStr)
+	addr, _ := db.Address().GetByAddressUserID(addressStr, userID)
 	if addr == nil {
 		ape.RenderErr(w, problems.NotFound())
 		return
