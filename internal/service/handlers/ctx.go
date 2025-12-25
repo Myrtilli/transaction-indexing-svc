@@ -17,6 +17,7 @@ const (
 	jwtCtxKey      ctxKey = iota
 	usernameCtxKey ctxKey = iota
 	indexerCtxKey  ctxKey = iota
+	userIDCtxKey   ctxKey = iota
 )
 
 func CtxLog(entry *logan.Entry) func(context.Context) context.Context {
@@ -59,6 +60,10 @@ func Username(r *http.Request) string {
 		return ""
 	}
 	return val
+}
+
+func UserID(r *http.Request) int64 {
+	return r.Context().Value(userIDCtxKey).(int64)
 }
 
 func CtxIndexer(indexer interface{}) func(context.Context) context.Context {

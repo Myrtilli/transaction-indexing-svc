@@ -58,7 +58,17 @@ func AuthRequired(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), usernameCtxKey, username)
+		db := DB(r)
+		user, err := db.User().GetByUsername(username)
+		if err != nil || user == nil {
+			Log(r).Error("user not found in database")
+			ape.RenderErr(w, problems.Unauthorized())
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userIDCtxKey, user.ID)
+
+		ctx = context.WithValue(ctx, usernameCtxKey, username)
 
 		authLogger := logger.WithField("auth_user", username)
 		ctx = context.WithValue(ctx, logCtxKey, authLogger)
