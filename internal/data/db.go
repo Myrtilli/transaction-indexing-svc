@@ -21,8 +21,8 @@ type Addressdb interface {
 	Insert(Address) error
 	Select(userID int64) ([]Address, error)
 	GetByAddress(address string) (*Address, error)
-	FilterByAddress(address string) Addressdb
 	Get() (*Address, error)
+	GetByAddressUserID(address string, userID int64) (*Address, error)
 }
 
 type Address struct {
