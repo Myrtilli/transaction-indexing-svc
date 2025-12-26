@@ -15,24 +15,48 @@ func (i *Indexer) SyncNextBlock() {
 		return
 	}
 
-	nextHeight := int64(0)
-	if tip != nil {
-		nextHeight = tip.Height + 1
+	var checkHeight int64
+	if tip == nil {
+		checkHeight = 0
+	} else {
+		checkHeight = tip.Height
 	}
 
-	var blockHash string
-	err = i.rpcClient.Call("getblockhash", []any{nextHeight}, &blockHash)
+	var rpcHash string
+	err = i.rpcClient.Call("getblockhash", []any{checkHeight}, &rpcHash)
 	if err != nil {
 		return
 	}
 
-	header, err := i.rpcClient.GetBlockHeader(blockHash)
+	if tip != nil && tip.BlockHash != rpcHash {
+		i.logger.WithFields(map[string]interface{}{
+			"height":   checkHeight,
+			"db_hash":  tip.BlockHash,
+			"rpc_hash": rpcHash,
+		}).Warn("reorg detected at tip!")
+
+		i.HandleReorg(checkHeight + 1)
+		return
+	}
+
+	nextHeight := checkHeight
+	if tip != nil {
+		nextHeight = tip.Height + 1
+	}
+
+	var nextBlockHash string
+	err = i.rpcClient.Call("getblockhash", []any{nextHeight}, &nextBlockHash)
+	if err != nil {
+		return
+	}
+
+	header, err := i.rpcClient.GetBlockHeader(nextBlockHash)
 	if err != nil {
 		i.logger.WithField("height", nextHeight).WithError(err).Error("failed to fetch header")
 		return
 	}
 
-	txs, err := i.rpcClient.GetBlock(blockHash)
+	txs, err := i.rpcClient.GetBlock(nextBlockHash)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to fetch block txs")
 		return
@@ -75,7 +99,7 @@ func (i *Indexer) processBlock(header *bitcoin.BlockHeader, txs []bitcoin.Transa
 			if err == nil && bitcoin.VerifyMerkleProof(tx.TxID, [][]byte{proof}, header.MerkleRoot) {
 				entry.Info("verified proof for tx")
 			} else {
-				entry.Warn("skipping strict Merkle check for tx (Regtest mode)")
+				entry.Warn("skipping real Merkle check for tx (Regtest mode)")
 			}
 
 			i.updateDatabase(tx, header)
@@ -144,6 +168,16 @@ func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHe
 			Amount:      int64(out.Value * 1e8),
 			BlockHeight: header.Height,
 		})
+
+		if err == nil {
+			i.undoLog.Add(UndoAction{
+				BlockHeight: header.Height,
+				Action:      "create_utxo",
+				TxID:        tx.TxID,
+				Vout:        out.Vout,
+			})
+		}
+
 		if err != nil {
 			i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert utxo")
 		}

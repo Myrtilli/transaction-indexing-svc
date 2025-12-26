@@ -19,6 +19,7 @@ type Indexer struct {
 	rpcClient *bitcoin.RPCClient
 	cfg       Config
 	logger    *logan.Entry
+	undoLog   *UndoLog
 }
 
 func New(logger *logan.Entry, db data.MasterQ, rpc *bitcoin.RPCClient, cfg Config) *Indexer {
@@ -27,6 +28,7 @@ func New(logger *logan.Entry, db data.MasterQ, rpc *bitcoin.RPCClient, cfg Confi
 		db:        db,
 		rpcClient: rpc,
 		cfg:       cfg,
+		undoLog:   NewUndoLog(),
 	}
 }
 
