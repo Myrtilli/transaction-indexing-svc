@@ -7,9 +7,13 @@ func (i *Indexer) RollbackBlock(height int64) {
 		for _, a := range actions {
 			switch a.Action {
 			case "create_utxo":
-				_ = i.db.UTXO().DeleteAboveHeight(height - 1)
+				if err := i.db.UTXO().DeleteAboveHeight(height - 1); err != nil {
+					return err
+				}
 			case "spend_utxo":
-				_ = i.db.UTXO().UnspendByHeight(height - 1)
+				if err := i.db.UTXO().UnspendByHeight(height - 1); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -21,7 +25,7 @@ func (i *Indexer) RollbackBlock(height int64) {
 	})
 
 	if err != nil {
-		i.logger.WithError(err).Error("failed to rollback block header")
+		i.logger.WithError(err).WithField("height", height).Error("failed to rollback block")
 		return
 	}
 
@@ -30,15 +34,14 @@ func (i *Indexer) RollbackBlock(height int64) {
 }
 
 func (i *Indexer) HandleReorg(newTipHeight int64) {
-	i.logger.WithField("new_tip", newTipHeight).Info("reorganization detected, searching for common ancestor")
-
 	commonAncestor := i.FindCommonAncestor(newTipHeight)
 	currentTip := i.CurrentTip()
 
 	i.logger.WithFields(map[string]interface{}{
 		"common_ancestor": commonAncestor,
 		"current_tip":     currentTip,
-	}).Info("starting rollback process")
+		"new_tip":         newTipHeight,
+	}).Info("starting reorganization process")
 
 	for h := currentTip; h > commonAncestor; h-- {
 		i.RollbackBlock(h)
@@ -46,31 +49,31 @@ func (i *Indexer) HandleReorg(newTipHeight int64) {
 }
 
 func (i *Indexer) FindCommonAncestor(newHeight int64) int64 {
-	for h := newHeight - 1; h > 0; h-- {
+	currentTip := i.CurrentTip()
+
+	for h := currentTip; h > 0; h-- {
+		if currentTip-h > int64(i.cfg.MaxReorgDepth) {
+			i.logger.WithFields(map[string]interface{}{
+				"max_depth": i.cfg.MaxReorgDepth,
+				"current_h": h,
+			}).Error("max reorg depth reached")
+			break
+		}
+
 		dbBlock, err := i.db.BlockHeader().GetByHeight(h)
-		if err != nil {
-			i.logger.WithError(err).WithField("height", h).Error("failed to get block from DB during reorg")
+		if err != nil || dbBlock == nil {
 			continue
 		}
 
 		var rpcHash string
 		err = i.rpcClient.Call("getblockhash", []interface{}{h}, &rpcHash)
 		if err != nil {
-			i.logger.WithError(err).WithField("height", h).Error("failed to get block hash from RPC")
+			i.logger.WithError(err).WithField("height", h).Error("rpc failure during ancestor search")
 			continue
 		}
 
-		if dbBlock != nil && dbBlock.BlockHash == rpcHash {
-			i.logger.WithFields(map[string]interface{}{
-				"height": h,
-				"hash":   rpcHash,
-			}).Debug("common ancestor found")
+		if dbBlock.BlockHash == rpcHash {
 			return h
-		}
-
-		if newHeight-h > int64(i.cfg.MaxReorgDepth) {
-			i.logger.Warn("max reorg depth reached, could not find common ancestor")
-			break
 		}
 	}
 	return 0
