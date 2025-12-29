@@ -3,6 +3,7 @@ package models
 import "github.com/Myrtilli/transaction-indexing-svc/internal/data"
 
 type SuccessResponse struct {
+	Token   string `json:"token,omitempty"`
 	Message string `json:"message"`
 }
 
@@ -42,6 +43,21 @@ type TxHistoryItem struct {
 	Confirmations int64             `json:"confirmations"`
 	MerkleProof   []data.MerkleNode `json:"merkle_proof"`
 	IsConfirmed   bool              `json:"is_confirmed"`
+	Inputs        []TxInput         `json:"inputs"`
+	Outputs       []TxOutput        `json:"outputs"`
+}
+
+type TxInput struct {
+	PrevTxID string `json:"prev_tx_id"`
+	VoutIdx  uint32 `json:"vout_idx"`
+	Address  string `json:"address"`
+	Amount   int64  `json:"amount"`
+}
+
+type TxOutput struct {
+	Address string `json:"address"`
+	Amount  int64  `json:"amount"`
+	VoutIdx uint32 `json:"vout_idx"`
 }
 
 func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryItem {
@@ -52,6 +68,25 @@ func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryIt
 			confirmations = 0
 		}
 
+		inputs := make([]TxInput, len(tx.Inputs))
+		for j, in := range tx.Inputs {
+			inputs[j] = TxInput{
+				PrevTxID: in.PrevTxID,
+				VoutIdx:  in.VoutIdx,
+				Address:  in.Address,
+				Amount:   in.Amount,
+			}
+		}
+
+		outputs := make([]TxOutput, len(tx.Outputs))
+		for j, out := range tx.Outputs {
+			outputs[j] = TxOutput{
+				VoutIdx: out.VoutIdx,
+				Address: out.Address,
+				Amount:  out.Amount,
+			}
+		}
+
 		var proof []data.MerkleNode
 		res[i] = TxHistoryItem{
 			TxID:          tx.TxID,
@@ -60,6 +95,8 @@ func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryIt
 			Confirmations: confirmations,
 			MerkleProof:   proof,
 			IsConfirmed:   confirmations >= 6,
+			Inputs:        inputs,
+			Outputs:       outputs,
 		}
 	}
 	return res
