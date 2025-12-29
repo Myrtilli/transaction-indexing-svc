@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -16,7 +17,9 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 
 	addr, _ := db.Address().GetByAddressUserID(addressStr, userID)
 	if addr == nil {
-		ape.RenderErr(w, problems.NotFound())
+		err := errors.New(addressStr + " is not tracked, please, add them to your addresses list")
+		logger.Error(err.Error())
+		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 

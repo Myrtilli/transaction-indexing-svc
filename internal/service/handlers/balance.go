@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/service/models"
@@ -41,7 +42,9 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if addr == nil {
-		ape.RenderErr(w, problems.NotFound())
+		err := errors.New(addressStr + " is not tracked, please, add them to your addresses list")
+		logger.Error(err.Error())
+		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
