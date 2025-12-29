@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/config"
 	"github.com/Myrtilli/transaction-indexing-svc/internal/data"
@@ -46,12 +47,20 @@ func CtxJWT(cfg config.Config) func(context.Context) context.Context {
 	}
 }
 
-func JWT(r *http.Request) string {
+func JWTKey(r *http.Request) string {
 	cfg, ok := r.Context().Value(jwtCtxKey).(config.Config)
 	if !ok {
 		return ""
 	}
 	return cfg.JWTKey()
+}
+
+func JWTExpiration(r *http.Request) time.Duration {
+	cfg, ok := r.Context().Value(jwtCtxKey).(config.Config)
+	if !ok {
+		return 0
+	}
+	return cfg.JWTExpiration()
 }
 
 func Username(r *http.Request) string {

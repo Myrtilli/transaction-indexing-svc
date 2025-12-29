@@ -13,7 +13,7 @@ import (
 func AuthRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := Log(r)
-		key := JWT(r)
+		key := JWTKey(r)
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {

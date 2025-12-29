@@ -6,10 +6,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateJWT(username string, key []byte) (string, error) {
+func GenerateJWT(username string, key []byte, exp time.Duration) (string, error) {
 	claims := jwt.MapClaims{
 		"username": username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"exp":      time.Now().Add(exp).Unix(),
 		"iat":      time.Now().Unix(),
 	}
 

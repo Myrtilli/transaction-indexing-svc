@@ -17,6 +17,7 @@ cop:
 
 jwt_key:
   key: 32_character_jwtkey_for_token
+  exp: 24
 
 bitcoin:
   url: "url"
