@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS block_headers (
     transaction_num bigint NOT NULL,
     height         bigint NOT NULL UNIQUE,
     merkle_root    text NOT NULL,
-    timestamp      timestamp with time zone NOT NULL,
+    timestamp      timestamp NOT NULL,
     difficulty     bigint NOT NULL,
     nonce          bigint NOT NULL
 );
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     block_height  bigint NOT NULL REFERENCES block_headers(height) ON DELETE CASCADE,
     block_hash    text NOT NULL REFERENCES block_headers(block_hash) ON DELETE CASCADE,
     merkle_proof  text[] NOT NULL,
-    created_at    timestamp with time zone DEFAULT now()
+    created_at    timestamp DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS utxos (
