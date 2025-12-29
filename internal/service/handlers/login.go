@@ -6,6 +6,7 @@ import (
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/auth"
 	passwordhash "github.com/Myrtilli/transaction-indexing-svc/internal/password_hash"
+	"github.com/Myrtilli/transaction-indexing-svc/internal/service/models"
 	"github.com/Myrtilli/transaction-indexing-svc/internal/service/requests"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
@@ -14,7 +15,8 @@ import (
 func Login(w http.ResponseWriter, r *http.Request) {
 	logger := Log(r)
 	db := DB(r)
-	key := JWT(r)
+	key := JWTKey(r)
+	time := JWTExpiration(r)
 
 	var req requests.LoginRequest
 
@@ -29,7 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.User().Get(req.Username)
+	user, err := db.User().GetByUsername(req.Username)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			ape.RenderErr(w, problems.Unauthorized())
@@ -47,13 +49,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GenerateJWT(user.Username, []byte(key))
+	token, err := auth.GenerateJWT(user.Username, []byte(key), time)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to generate jwt")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	ape.Render(w, token)
+	ape.Render(w, models.SuccessResponse{
+		Message: models.LoginSuccessMessage,
+		Token:   token,
+	})
 
 }
