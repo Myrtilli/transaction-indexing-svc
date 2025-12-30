@@ -15,23 +15,19 @@ func (i *Indexer) SyncNextBlock() {
 		return
 	}
 
-	// 1. Визначаємо висоту, яку хочемо перевірити
 	var checkHeight int64
 	if tip == nil {
-		checkHeight = 0 // Починаємо з генезису
+		checkHeight = 0
 	} else {
 		checkHeight = tip.Height
 	}
 
-	// 2. Отримуємо актуальний хеш цієї висоти з мережі
 	var rpcHash string
 	err = i.rpcClient.Call("getblockhash", []any{checkHeight}, &rpcHash)
 	if err != nil {
-		// Якщо блокчейну ще немає на цій висоті - просто чекаємо
 		return
 	}
 
-	// 3. ПЕРЕВІРКА НА РЕОРГ: чи збігається наш останній блок з мережевим?
 	if tip != nil && tip.BlockHash != rpcHash {
 		i.logger.WithFields(map[string]interface{}{
 			"height":   checkHeight,
