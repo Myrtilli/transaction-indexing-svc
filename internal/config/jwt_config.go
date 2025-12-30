@@ -21,7 +21,7 @@ type jwt struct {
 
 type jwtConfig struct {
 	Key        string        `figure:"key"`
-	Expiration time.Duration `figure:"exp"`
+	Expiration time.Duration `figure:"expiration"`
 }
 
 func NewJWT(getter kv.Getter) JWT {
@@ -33,7 +33,7 @@ func NewJWT(getter kv.Getter) JWT {
 func (j *jwt) JWTConfig() *jwtConfig {
 	return j.once.Do(func() interface{} {
 		var config jwtConfig
-		raw := kv.MustGetStringMap(j.getter, "jwt_key")
+		raw := kv.MustGetStringMap(j.getter, "jwt")
 		err := figure.Out(&config).From(raw).Please()
 		if err != nil {
 			panic(errors.Wrap(err, "failed to get jwt config"))
