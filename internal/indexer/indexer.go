@@ -17,7 +17,7 @@ func (i *Indexer) SyncNextBlock() {
 
 	var checkHeight int64
 	if tip == nil {
-		checkHeight = 0
+		checkHeight = int64(i.cfg.StartHeight)
 	} else {
 		checkHeight = tip.Height
 	}
@@ -66,6 +66,13 @@ func (i *Indexer) SyncNextBlock() {
 }
 
 func (i *Indexer) processBlock(header *bitcoin.BlockHeader, txs []bitcoin.Transaction) {
+	if bitcoin.CheckProofOfWork(header) {
+		i.logger.WithField("hash", header.BlockHash).Info("Passed check of proof")
+	} else {
+		i.logger.WithField("hash", header.BlockHash).Error("Failed check of proof")
+		return
+	}
+
 	err := i.db.BlockHeader().Insert(data.BlockHeader{
 		BlockHash:      header.BlockHash,
 		PreviousHash:   header.PreviousHash,
@@ -120,7 +127,7 @@ func (i *Indexer) getAddrFromOutput(out bitcoin.TxOutput) string {
 	if len(out.ScriptPubKey.Addresses) > 0 {
 		return out.ScriptPubKey.Addresses[0]
 	}
-	return ""
+	return "unknown"
 }
 
 func (i *Indexer) CurrentTip() int64 {
@@ -137,49 +144,76 @@ func (i *Indexer) isAddressTracked(address string) bool {
 }
 
 func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHeader) {
+	var dbInputs []data.TransactionInput
+	var dbOutputs []data.TransactionOutput
+	var transactionAddressID *int64
+	var transactionAmount int64
+
 	for _, in := range tx.Inputs {
+		var prevTxID *string
+		if in.PrevTxID != "" {
+			prevTxID = &in.PrevTxID
+		}
+		dbInputs = append(dbInputs, data.TransactionInput{
+			TxID:     tx.TxID,
+			PrevTxID: prevTxID,
+			VoutIdx:  uint32(in.Vout),
+		})
 		_ = i.db.UTXO().MarkAsSpent(in.PrevTxID, in.Vout)
 	}
 
 	for _, out := range tx.Outputs {
 		addrStr := i.getAddrFromOutput(out)
-		addrRecord, err := i.db.Address().GetByAddress(addrStr)
-		if err != nil || addrRecord == nil {
-			continue
-		}
+		amountSat := int64(out.Value * 1e8)
 
-		err = i.db.Transaction().Insert(data.Transaction{
-			TxID:        tx.TxID,
-			AddressID:   addrRecord.ID,
-			Amount:      int64(out.Value * 1e8),
-			BlockHeight: header.Height,
-			BlockHash:   header.BlockHash,
-			MerkleProof: json.RawMessage(`[]`),
-			CreatedAt:   time.Now(),
-		})
-		if err != nil {
-			i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert tx history")
-		}
-
-		err = i.db.UTXO().Insert(data.UTXO{
-			TxID:        tx.TxID,
-			Vout:        out.Vout,
-			AddressID:   addrRecord.ID,
-			Amount:      int64(out.Value * 1e8),
-			BlockHeight: header.Height,
+		dbOutputs = append(dbOutputs, data.TransactionOutput{
+			TxID:    tx.TxID,
+			Address: addrStr,
+			Amount:  amountSat,
+			VoutIdx: uint32(out.Vout),
 		})
 
-		if err == nil {
-			i.undoLog.Add(UndoAction{
-				BlockHeight: header.Height,
-				Action:      "create_utxo",
-				TxID:        tx.TxID,
-				Vout:        out.Vout,
-			})
-		}
+		if addrStr != "" {
+			addrRecord, err := i.db.Address().GetByAddress(addrStr)
+			if err == nil && addrRecord != nil {
+				if transactionAddressID == nil {
+					transactionAddressID = &addrRecord.ID
+					transactionAmount = amountSat
+				}
 
-		if err != nil {
-			i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert utxo")
+				err = i.db.UTXO().Insert(data.UTXO{
+					TxID:        tx.TxID,
+					Vout:        out.Vout,
+					AddressID:   addrRecord.ID,
+					Amount:      amountSat,
+					BlockHeight: header.Height,
+				})
+
+				if err == nil {
+					i.undoLog.Add(UndoAction{
+						BlockHeight: header.Height,
+						Action:      "create_utxo",
+						TxID:        tx.TxID,
+						Vout:        out.Vout,
+					})
+				}
+			}
 		}
+	}
+
+	err := i.db.Transaction().Insert(data.Transaction{
+		TxID:        tx.TxID,
+		AddressID:   transactionAddressID,
+		Amount:      transactionAmount,
+		BlockHeight: header.Height,
+		BlockHash:   header.BlockHash,
+		MerkleProof: json.RawMessage(`[]`),
+		CreatedAt:   time.Now(),
+		Inputs:      dbInputs,
+		Outputs:     dbOutputs,
+	})
+
+	if err != nil {
+		i.logger.WithError(err).WithField("tx_id", tx.TxID).Error("failed to insert transaction")
 	}
 }

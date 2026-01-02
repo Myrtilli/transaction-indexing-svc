@@ -48,6 +48,7 @@ func newService(cfg config.Config) *service {
 	idx := indexer.New(cfg.Log(), db, rpc, indexer.Config{
 		MaxReorgDepth: 6,
 		PollInterval:  cfg.IndexerPollInterval(),
+		StartHeight:   int(cfg.StartHeight()),
 	})
 
 	return &service{

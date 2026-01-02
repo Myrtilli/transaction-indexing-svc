@@ -12,6 +12,7 @@ import (
 type Config struct {
 	MaxReorgDepth int
 	PollInterval  time.Duration
+	StartHeight   int
 }
 
 type Indexer struct {
