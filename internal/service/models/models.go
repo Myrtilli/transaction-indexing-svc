@@ -55,9 +55,13 @@ type TxInput struct {
 }
 
 type TxOutput struct {
-	Address string `json:"address"`
-	Amount  int64  `json:"amount"`
-	VoutIdx uint32 `json:"vout_idx"`
+	Address      string `json:"address"`
+	Amount       int64  `json:"amount"`
+	VoutIdx      uint32 `json:"vout_idx"`
+	ScriptPubKey struct {
+		Address   string   `json:"address"`
+		Addresses []string `json:"addresses"`
+	} `json:"scriptPubKey"`
 }
 
 func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryItem {
@@ -70,8 +74,12 @@ func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryIt
 
 		inputs := make([]TxInput, len(tx.Inputs))
 		for j, in := range tx.Inputs {
+			prevID := ""
+			if in.PrevTxID != nil {
+				prevID = *in.PrevTxID
+			}
 			inputs[j] = TxInput{
-				PrevTxID: in.PrevTxID,
+				PrevTxID: prevID,
 				VoutIdx:  in.VoutIdx,
 				Address:  in.Address,
 				Amount:   in.Amount,

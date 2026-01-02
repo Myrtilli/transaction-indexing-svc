@@ -26,12 +26,29 @@ CREATE TABLE IF NOT EXISTS block_headers (
 CREATE TABLE IF NOT EXISTS transactions (
     id            bigserial PRIMARY KEY,
     tx_id         text NOT NULL,
-    address_id    bigint NOT NULL REFERENCES addresses(id) ON DELETE CASCADE,
+    address_id    bigint REFERENCES addresses(id) ON DELETE CASCADE,
     amount        bigint NOT NULL,
     block_height  bigint NOT NULL REFERENCES block_headers(height) ON DELETE CASCADE,
     block_hash    text NOT NULL REFERENCES block_headers(block_hash) ON DELETE CASCADE,
     merkle_proof  text[] NOT NULL,
     created_at    timestamp DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS transaction_inputs (
+    id SERIAL PRIMARY KEY,
+    tx_id TEXT NOT NULL,
+    prev_tx_id TEXT,
+    vout_idx INT NOT NULL,
+    address TEXT,
+    amount BIGINT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS transaction_outputs (
+    id SERIAL PRIMARY KEY,
+    tx_id TEXT NOT NULL,
+    address TEXT NOT NULL,
+    amount BIGINT NOT NULL,
+    vout_idx INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS utxos (
@@ -51,6 +68,8 @@ CREATE INDEX IF NOT EXISTS idx_transactions_address_id ON transactions(address_i
 
 -- +migrate Down
 DROP TABLE IF EXISTS utxos;
+DROP TABLE IF EXISTS transaction_inputs;
+DROP TABLE IF EXISTS transaction_outputs;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS block_headers;
 DROP TABLE IF EXISTS addresses;

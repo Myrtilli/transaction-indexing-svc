@@ -19,7 +19,7 @@ type MerkleNode struct {
 type Transaction struct {
 	ID          int64               `db:"id"`
 	TxID        string              `db:"tx_id"`
-	AddressID   int64               `db:"address_id"`
+	AddressID   *int64              `db:"address_id"`
 	Amount      int64               `db:"amount"`
 	BlockHeight int64               `db:"block_height"`
 	BlockHash   string              `db:"block_hash"`
@@ -30,12 +30,12 @@ type Transaction struct {
 }
 
 type TransactionInput struct {
-	ID       int64  `db:"id"`
-	TxID     string `db:"tx_id"`
-	PrevTxID string `db:"prev_tx_id"`
-	VoutIdx  uint32 `db:"vout_idx"`
-	Address  string `db:"address"`
-	Amount   int64  `db:"amount"`
+	ID       int64   `db:"id"`
+	TxID     string  `db:"tx_id"`
+	PrevTxID *string `db:"prev_tx_id"`
+	VoutIdx  uint32  `db:"vout_idx"`
+	Address  string  `db:"address"`
+	Amount   int64   `db:"amount"`
 }
 
 type TransactionOutput struct {
