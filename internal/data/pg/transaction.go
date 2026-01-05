@@ -51,11 +51,13 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 	return nil
 }
 
-func (t *transactionT) SelectByAddressesID(addressesIDs []int64) ([]data.Transaction, error) {
+func (t *transactionT) SelectByAddressesID(addressesIDs []int64, p data.Pagination) ([]data.Transaction, error) {
 
 	query := sq.Select("*").
 		From("transactions").
-		Where(sq.Eq{"address_id": addressesIDs})
+		Where(sq.Eq{"address_id": addressesIDs}).
+		Limit(p.Limit).
+		Offset(p.Offset)
 
 	var transactions []data.Transaction
 	err := t.db.Select(&transactions, query)

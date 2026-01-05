@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/service/models"
+	"github.com/Myrtilli/transaction-indexing-svc/internal/service/requests"
 	"github.com/go-chi/chi"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
@@ -16,6 +17,12 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 	db := DB(r)
 	addressStr := chi.URLParam(r, "address")
 	userID := UserID(r)
+
+	req, err := requests.Pagination(r)
+	if err != nil {
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
 
 	addresses := strings.Split(addressStr, ",")
 
@@ -38,7 +45,7 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 		addressesIDs = append(addressesIDs, a.ID)
 	}
 
-	txs, err := db.Transaction().SelectByAddressesID(addressesIDs)
+	txs, err := db.Transaction().SelectByAddressesID(addressesIDs, req.Pagination)
 	if err != nil {
 		logger.WithError(err).Error("failed to select transactions")
 		ape.RenderErr(w, problems.InternalError())

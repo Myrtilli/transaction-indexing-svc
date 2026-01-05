@@ -7,8 +7,13 @@ import (
 
 type Transactiondb interface {
 	Insert(tx Transaction) error
-	SelectByAddressesID(addressesIDs []int64) ([]Transaction, error)
+	SelectByAddressesID(addressesIDs []int64, p Pagination) ([]Transaction, error)
 	DeleteAboveHeight(height int64) error
+}
+
+type Pagination struct {
+	Limit  uint64
+	Offset uint64
 }
 
 type MerkleNode struct {

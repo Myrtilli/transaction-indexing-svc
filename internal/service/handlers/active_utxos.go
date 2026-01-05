@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Myrtilli/transaction-indexing-svc/internal/service/requests"
 	"github.com/go-chi/chi"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
@@ -15,6 +16,12 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 	db := DB(r)
 	addressStr := chi.URLParam(r, "address")
 	userID := UserID(r)
+
+	req, err := requests.Pagination(r)
+	if err != nil {
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
 
 	addresses := strings.Split(addressStr, ",")
 
@@ -37,7 +44,7 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 		addressesIDs = append(addressesIDs, a.ID)
 	}
 
-	utxos, err := db.UTXO().SelectByAddressesID(addressesIDs)
+	utxos, err := db.UTXO().SelectByAddressesID(addressesIDs, req.Pagination)
 	if err != nil {
 		logger.WithError(err).Error("failed to select utxos")
 		ape.RenderErr(w, problems.InternalError())

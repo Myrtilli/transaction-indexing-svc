@@ -27,10 +27,12 @@ func (a *addressA) Insert(address data.Address) error {
 	return err
 }
 
-func (a *addressA) Select(userID int64) ([]data.Address, error) {
+func (a *addressA) Select(userID int64, p data.Pagination) ([]data.Address, error) {
 	query := sq.Select("*").
 		From("addresses").
-		Where(sq.Eq{"user_id": userID})
+		Where(sq.Eq{"user_id": userID}).
+		Limit(p.Limit).
+		Offset(p.Offset)
 
 	var addresses []data.Address
 	err := a.db.Select(&addresses, query)

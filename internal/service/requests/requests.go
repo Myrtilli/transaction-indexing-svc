@@ -2,8 +2,12 @@ package requests
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/Myrtilli/transaction-indexing-svc/internal/data"
 )
 
 type RegisterRequest struct {
@@ -57,4 +61,32 @@ func (r NewAddressRequest) Validate() error {
 		return errors.New("address is too short")
 	}
 	return nil
+}
+
+type NewPaginationRequest struct {
+	data.Pagination
+}
+
+func Pagination(r *http.Request) (NewPaginationRequest, error) {
+	q := r.URL.Query()
+
+	limit, _ := strconv.Atoi(q.Get("limit"))
+	offset, _ := strconv.Atoi(q.Get("offset"))
+
+	if limit <= 0 {
+		limit = 15
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	return NewPaginationRequest{
+		Pagination: data.Pagination{
+			Limit:  uint64(limit),
+			Offset: uint64(offset),
+		},
+	}, nil
 }
