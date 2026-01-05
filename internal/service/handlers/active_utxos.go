@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/service/requests"
@@ -21,6 +22,14 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
+	}
+
+	minConf, _ := strconv.ParseInt(r.URL.Query().Get("min_confirmations"), 10, 64)
+
+	lastBlock, _ := db.BlockHeader().GetLast()
+	var height int64
+	if lastBlock != nil {
+		height = lastBlock.Height
 	}
 
 	addresses := strings.Split(addressStr, ",")
@@ -44,7 +53,7 @@ func ActiveUTXOsByAddress(w http.ResponseWriter, r *http.Request) {
 		addressesIDs = append(addressesIDs, a.ID)
 	}
 
-	utxos, err := db.UTXO().SelectByAddressesID(addressesIDs, req.Pagination)
+	utxos, err := db.UTXO().SelectByAddressesID(addressesIDs, req.Pagination, height, minConf)
 	if err != nil {
 		logger.WithError(err).Error("failed to select utxos")
 		ape.RenderErr(w, problems.InternalError())

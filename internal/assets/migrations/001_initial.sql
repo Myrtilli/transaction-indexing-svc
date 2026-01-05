@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     block_height  bigint NOT NULL REFERENCES block_headers(height) ON DELETE CASCADE,
     block_hash    text NOT NULL REFERENCES block_headers(block_hash) ON DELETE CASCADE,
     merkle_proof  text[] NOT NULL,
-    created_at    timestamp DEFAULT now()
+    created_at    timestamp DEFAULT now(),
+    timestamp     bigint NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction_inputs (

@@ -41,7 +41,8 @@ func (u *utxoU) SelectByAddressID(addressID int64) ([]data.UTXO, error) {
 	return utxos, nil
 }
 
-func (u *utxoU) SelectByAddressesID(addressesIDs []int64, p data.Pagination) ([]data.UTXO, error) {
+func (u *utxoU) SelectByAddressesID(addressesIDs []int64, p data.Pagination, height int64, minConf int64) ([]data.UTXO, error) {
+
 	query := sq.Select("*").
 		From("utxos").
 		Where(sq.Eq{"address_id": addressesIDs}).
