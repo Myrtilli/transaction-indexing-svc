@@ -41,6 +41,20 @@ func (u *utxoU) SelectByAddressID(addressID int64) ([]data.UTXO, error) {
 	return utxos, nil
 }
 
+func (u *utxoU) SelectByAddressesID(addressesIDs []int64) ([]data.UTXO, error) {
+	query := sq.Select("*").
+		From("utxos").
+		Where(sq.Eq{"address_id": addressesIDs})
+
+	var utxos []data.UTXO
+	err := u.db.Select(&utxos, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return utxos, nil
+}
+
 func (u *utxoU) MarkAsSpent(txID string, vout int64) error {
 	query := sq.Update("utxos").
 		Set("is_spent", true).

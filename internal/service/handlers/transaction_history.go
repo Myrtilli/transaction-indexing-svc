@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/service/models"
 	"github.com/go-chi/chi"
@@ -16,20 +17,28 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 	addressStr := chi.URLParam(r, "address")
 	userID := UserID(r)
 
-	addr, err := db.Address().GetByAddressUserID(addressStr, userID)
+	addresses := strings.Split(addressStr, ",")
+
+	addr, err := db.Address().GetByAddressesUserID(addresses, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get address from DB")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
-	if addr == nil {
+
+	if len(addr) == 0 {
 		err := errors.New(addressStr + " is not tracked, please, add them to your addresses list")
 		logger.Error(err.Error())
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	txs, err := db.Transaction().SelectByAddressID(addr.ID)
+	var addressesIDs []int64
+	for _, a := range addr {
+		addressesIDs = append(addressesIDs, a.ID)
+	}
+
+	txs, err := db.Transaction().SelectByAddressesID(addressesIDs)
 	if err != nil {
 		logger.WithError(err).Error("failed to select transactions")
 		ape.RenderErr(w, problems.InternalError())

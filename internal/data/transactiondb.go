@@ -7,7 +7,7 @@ import (
 
 type Transactiondb interface {
 	Insert(tx Transaction) error
-	SelectByAddressID(addressID int64) ([]Transaction, error)
+	SelectByAddressesID(addressesIDs []int64) ([]Transaction, error)
 	DeleteAboveHeight(height int64) error
 }
 

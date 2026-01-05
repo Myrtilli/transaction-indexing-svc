@@ -51,11 +51,11 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 	return nil
 }
 
-func (t *transactionT) SelectByAddressID(addressID int64) ([]data.Transaction, error) {
+func (t *transactionT) SelectByAddressesID(addressesIDs []int64) ([]data.Transaction, error) {
 
 	query := sq.Select("*").
 		From("transactions").
-		Where(sq.Eq{"address_id": addressID})
+		Where(sq.Eq{"address_id": addressesIDs})
 
 	var transactions []data.Transaction
 	err := t.db.Select(&transactions, query)

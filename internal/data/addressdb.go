@@ -6,6 +6,7 @@ type Addressdb interface {
 	GetByAddress(address string) (*Address, error)
 	Get() (*Address, error)
 	GetByAddressUserID(address string, userID int64) (*Address, error)
+	GetByAddressesUserID(address []string, userID int64) ([]Address, error)
 }
 
 type Address struct {

@@ -52,9 +52,20 @@ func (a *addressA) GetByAddressUserID(address string, userID int64) (*data.Addre
 	return &result, err
 }
 
+func (a *addressA) GetByAddressesUserID(addresses []string, userID int64) ([]data.Address, error) {
+	var result []data.Address
+	query := sq.Select("*").From("addresses").Where(sq.Eq{"address": addresses, "user_id": userID})
+
+	err := a.db.Select(&result, query)
+	if err != nil {
+		return nil, nil
+	}
+	return result, err
+}
+
 func (a *addressA) GetByAddress(address string) (*data.Address, error) {
 	query := sq.Select("*").
-		From("addresses").
+		From("address").
 		Where(sq.Eq{"address": address})
 
 	var addr data.Address

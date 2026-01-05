@@ -2,6 +2,7 @@ package data
 
 type UTXOdb interface {
 	Insert(utxo UTXO) error
+	SelectByAddressesID(addressID []int64) ([]UTXO, error)
 	SelectByAddressID(addressID int64) ([]UTXO, error)
 	MarkAsSpent(txID string, vout int64) error
 	DeleteAboveHeight(height int64) error
