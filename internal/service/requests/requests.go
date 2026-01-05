@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/Myrtilli/transaction-indexing-svc/internal/data"
@@ -89,4 +90,34 @@ func Pagination(r *http.Request) (NewPaginationRequest, error) {
 			Offset: uint64(offset),
 		},
 	}, nil
+}
+
+type NewTransactionRequest struct {
+	Before *time.Time
+	After  *time.Time
+}
+
+func TimeFilter(r *http.Request) (NewTransactionRequest, error) {
+	q := r.URL.Query()
+	var req NewTransactionRequest
+
+	if s := q.Get("before"); s != "" {
+		sec, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return req, errors.New("invalid 'before' timestamp")
+		}
+		t := time.Unix(sec, 0)
+		req.Before = &t
+	}
+
+	if s := q.Get("after"); s != "" {
+		sec, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return req, errors.New("invalid 'after' timestamp")
+		}
+		t := time.Unix(sec, 0)
+		req.After = &t
+	}
+
+	return req, nil
 }

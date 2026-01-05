@@ -1,6 +1,8 @@
 package pg
 
 import (
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/Myrtilli/transaction-indexing-svc/internal/data"
 	"github.com/lib/pq"
@@ -51,13 +53,21 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 	return nil
 }
 
-func (t *transactionT) SelectByAddressesID(addressesIDs []int64, p data.Pagination) ([]data.Transaction, error) {
+func (t *transactionT) SelectByAddressesID(addressesIDs []int64, p data.Pagination, before *time.Time, after *time.Time) ([]data.Transaction, error) {
 
 	query := sq.Select("*").
 		From("transactions").
-		Where(sq.Eq{"address_id": addressesIDs}).
-		Limit(p.Limit).
-		Offset(p.Offset)
+		Where(sq.Eq{"address_id": addressesIDs})
+
+	if before != nil {
+		query = query.Where(sq.LtOrEq{"created_at": *before})
+	}
+
+	if after != nil {
+		query = query.Where(sq.GtOrEq{"created_at": *after})
+	}
+
+	query = query.Limit(p.Limit).Offset(p.Offset)
 
 	var transactions []data.Transaction
 	err := t.db.Select(&transactions, query)

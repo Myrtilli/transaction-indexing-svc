@@ -24,6 +24,12 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	time_req, err := requests.TimeFilter(r)
+	if err != nil {
+		ape.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
 	addresses := strings.Split(addressStr, ",")
 
 	addr, err := db.Address().GetByAddressesUserID(addresses, userID)
@@ -45,7 +51,7 @@ func TransactionHistoryByAddress(w http.ResponseWriter, r *http.Request) {
 		addressesIDs = append(addressesIDs, a.ID)
 	}
 
-	txs, err := db.Transaction().SelectByAddressesID(addressesIDs, req.Pagination)
+	txs, err := db.Transaction().SelectByAddressesID(addressesIDs, req.Pagination, time_req.Before, time_req.After)
 	if err != nil {
 		logger.WithError(err).Error("failed to select transactions")
 		ape.RenderErr(w, problems.InternalError())

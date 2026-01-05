@@ -7,7 +7,7 @@ import (
 
 type Transactiondb interface {
 	Insert(tx Transaction) error
-	SelectByAddressesID(addressesIDs []int64, p Pagination) ([]Transaction, error)
+	SelectByAddressesID(addressesIDs []int64, p Pagination, before *time.Time, after *time.Time) ([]Transaction, error)
 	DeleteAboveHeight(height int64) error
 }
 
@@ -30,6 +30,7 @@ type Transaction struct {
 	BlockHash   string              `db:"block_hash"`
 	MerkleProof json.RawMessage     `db:"merkle_proof"`
 	CreatedAt   time.Time           `db:"created_at"`
+	TimeStamp   int64               `db:"timestamp"`
 	Inputs      []TransactionInput  `db:"transaction_input"`
 	Outputs     []TransactionOutput `db:"transaction_output"`
 }
