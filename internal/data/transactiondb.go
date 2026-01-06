@@ -30,9 +30,9 @@ type Transaction struct {
 	BlockHash   string              `db:"block_hash"`
 	MerkleProof json.RawMessage     `db:"merkle_proof"`
 	CreatedAt   time.Time           `db:"created_at"`
-	TimeStamp   int64               `db:"timestamp"`
 	Inputs      []TransactionInput  `db:"transaction_input"`
 	Outputs     []TransactionOutput `db:"transaction_output"`
+	TimeStamp   int64
 }
 
 type TransactionInput struct {

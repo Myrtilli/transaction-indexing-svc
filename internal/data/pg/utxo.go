@@ -20,8 +20,8 @@ type utxoU struct {
 
 func (u *utxoU) Insert(utxo data.UTXO) error {
 	query := sq.Insert("utxos").
-		Columns("address_id", "tx_id", "vout", "amount", "block_height", "is_spent").
-		Values(utxo.AddressID, utxo.TxID, utxo.Vout, utxo.Amount, utxo.BlockHeight, utxo.IsSpent)
+		Columns("address_utxo", "address_id", "tx_id", "vout", "amount", "block_height", "is_spent").
+		Values(utxo.Address, utxo.AddressID, utxo.TxID, utxo.Vout, utxo.Amount, utxo.BlockHeight, utxo.IsSpent)
 
 	err := u.db.Exec(query)
 	return err
@@ -48,6 +48,11 @@ func (u *utxoU) SelectByAddressesID(addressesIDs []int64, p data.Pagination, hei
 		Where(sq.Eq{"address_id": addressesIDs}).
 		Limit(p.Limit).
 		Offset(p.Offset)
+
+	if minConf > 0 {
+		maxHeight := height - minConf + 1
+		query = query.Where(sq.LtOrEq{"block_height": maxHeight})
+	}
 
 	var utxos []data.UTXO
 	err := u.db.Select(&utxos, query)

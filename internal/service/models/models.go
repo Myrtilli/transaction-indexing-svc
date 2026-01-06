@@ -55,13 +55,9 @@ type TxInput struct {
 }
 
 type TxOutput struct {
-	Address      string `json:"address"`
-	Amount       int64  `json:"amount"`
-	VoutIdx      uint32 `json:"vout_idx"`
-	ScriptPubKey struct {
-		Address   string   `json:"address"`
-		Addresses []string `json:"addresses"`
-	} `json:"scriptPubKey"`
+	Address string `json:"address"`
+	Amount  int64  `json:"amount"`
+	VoutIdx uint32 `json:"vout_idx"`
 }
 
 func NewTxHistoryList(txs []data.Transaction, currentHeight int64) []TxHistoryItem {

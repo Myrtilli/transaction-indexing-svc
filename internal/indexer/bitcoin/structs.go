@@ -19,16 +19,13 @@ type Transaction struct {
 }
 
 type TxInput struct {
+	Address  string `json:"address"`
 	PrevTxID string `json:"txid"`
 	Vout     int64  `json:"vout"`
 }
 
 type TxOutput struct {
-	Value        float64 `json:"value"`
-	Vout         int64   `json:"n"`
-	ScriptPubKey struct {
-		Address   string   `json:"address"`
-		Addresses []string `json:"addresses"`
-	} `json:"scriptPubKey"`
-	Address string `json:"address,omitempty"`
+	Value   float64 `json:"value"`
+	Vout    int64   `json:"n"`
+	Address string  `json:"address,omitempty"`
 }

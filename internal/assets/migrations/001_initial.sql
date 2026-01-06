@@ -31,8 +31,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     block_height  bigint NOT NULL REFERENCES block_headers(height) ON DELETE CASCADE,
     block_hash    text NOT NULL REFERENCES block_headers(block_hash) ON DELETE CASCADE,
     merkle_proof  text[] NOT NULL,
-    created_at    timestamp DEFAULT now(),
-    timestamp     bigint NOT NULL
+    created_at    timestamp DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS transaction_inputs (
@@ -54,6 +53,7 @@ CREATE TABLE IF NOT EXISTS transaction_outputs (
 
 CREATE TABLE IF NOT EXISTS utxos (
     id            bigserial PRIMARY KEY,
+    address_utxo  TEXT NOT NULL,
     address_id    bigint NOT NULL REFERENCES addresses(id) ON DELETE CASCADE,
     tx_id         text NOT NULL,
     vout          int NOT NULL,

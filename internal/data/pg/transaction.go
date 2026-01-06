@@ -23,8 +23,8 @@ type transactionT struct {
 
 func (t *transactionT) Insert(tx data.Transaction) error {
 	query := sq.Insert("transactions").
-		Columns("tx_id", "address_id", "amount", "block_height", "block_hash", "merkle_proof").
-		Values(tx.TxID, tx.AddressID, tx.Amount, tx.BlockHeight, tx.BlockHash, pq.Array(tx.MerkleProof))
+		Columns("tx_id", "address_id", "amount", "block_height", "block_hash", "merkle_proof", "created_at").
+		Values(tx.TxID, tx.AddressID, tx.Amount, tx.BlockHeight, tx.BlockHash, pq.Array(tx.MerkleProof), tx.CreatedAt)
 
 	if err := t.db.Exec(query); err != nil {
 		return err
@@ -32,8 +32,8 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 
 	for _, input := range tx.Inputs {
 		input_query := sq.Insert("transaction_inputs").
-			Columns("tx_id", "address", "amount", "vout_idx").
-			Values(tx.TxID, input.Address, input.Amount, input.VoutIdx)
+			Columns("tx_id", "address", "amount", "vout_idx", "prev_tx_id").
+			Values(tx.TxID, input.Address, input.Amount, input.VoutIdx, input.PrevTxID)
 
 		if err := t.db.Exec(input_query); err != nil {
 			return err

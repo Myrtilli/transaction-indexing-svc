@@ -67,7 +67,7 @@ func (a *addressA) GetByAddressesUserID(addresses []string, userID int64) ([]dat
 
 func (a *addressA) GetByAddress(address string) (*data.Address, error) {
 	query := sq.Select("*").
-		From("address").
+		From("addresses").
 		Where(sq.Eq{"address": address})
 
 	var addr data.Address

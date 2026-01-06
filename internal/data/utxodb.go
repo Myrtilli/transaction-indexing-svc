@@ -13,6 +13,7 @@ type UTXOdb interface {
 
 type UTXO struct {
 	ID          int64  `db:"id"`
+	Address     string `db:"address_utxo"`
 	AddressID   int64  `db:"address_id"`
 	TxID        string `db:"tx_id"`
 	Vout        int64  `db:"vout"`

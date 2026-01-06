@@ -121,12 +121,14 @@ func (i *Indexer) getAddrFromOutput(out bitcoin.TxOutput) string {
 	if out.Address != "" {
 		return out.Address
 	}
-	if out.ScriptPubKey.Address != "" {
-		return out.ScriptPubKey.Address
+	return "unknown"
+}
+
+func (i *Indexer) getAddrFromInput(in bitcoin.TxInput) string {
+	if in.Address != "" {
+		return in.Address
 	}
-	if len(out.ScriptPubKey.Addresses) > 0 {
-		return out.ScriptPubKey.Addresses[0]
-	}
+
 	return "unknown"
 }
 
@@ -150,11 +152,13 @@ func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHe
 	var transactionAmount int64
 
 	for _, in := range tx.Inputs {
+		addrStr := i.getAddrFromInput(in)
 		var prevTxID *string
 		if in.PrevTxID != "" {
 			prevTxID = &in.PrevTxID
 		}
 		dbInputs = append(dbInputs, data.TransactionInput{
+			Address:  addrStr,
 			TxID:     tx.TxID,
 			PrevTxID: prevTxID,
 			VoutIdx:  uint32(in.Vout),
@@ -184,6 +188,7 @@ func (i *Indexer) updateDatabase(tx bitcoin.Transaction, header *bitcoin.BlockHe
 				err = i.db.UTXO().Insert(data.UTXO{
 					TxID:        tx.TxID,
 					Vout:        out.Vout,
+					Address:     addrStr,
 					AddressID:   addrRecord.ID,
 					Amount:      amountSat,
 					BlockHeight: header.Height,
