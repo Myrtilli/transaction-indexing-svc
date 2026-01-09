@@ -31,6 +31,11 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 	}
 
 	for _, input := range tx.Inputs {
+		addr := input.Address
+		if addr == "" && input.ScriptSig.Address != "" {
+			addr = input.ScriptSig.Address
+		}
+
 		input_query := sq.Insert("transaction_inputs").
 			Columns("tx_id", "address", "amount", "vout_idx", "prev_tx_id").
 			Values(tx.TxID, input.Address, input.Amount, input.VoutIdx, input.PrevTxID)
@@ -41,6 +46,11 @@ func (t *transactionT) Insert(tx data.Transaction) error {
 	}
 
 	for _, output := range tx.Outputs {
+		addr := output.Address
+		if addr == "" && output.ScriptPubKey.Address != "" {
+			addr = output.ScriptPubKey.Address
+		}
+
 		output_query := sq.Insert("transaction_outputs").
 			Columns("tx_id", "address", "amount", "vout_idx").
 			Values(tx.TxID, output.Address, output.Amount, output.VoutIdx)

@@ -121,6 +121,15 @@ func (i *Indexer) getAddrFromOutput(out bitcoin.TxOutput) string {
 	if out.Address != "" {
 		return out.Address
 	}
+
+	if out.ScriptPubKey.Address != "" {
+		return out.ScriptPubKey.Address
+	}
+
+	if len(out.ScriptPubKey.Addresses) > 0 {
+		return out.ScriptPubKey.Addresses[0]
+	}
+
 	return "unknown"
 }
 

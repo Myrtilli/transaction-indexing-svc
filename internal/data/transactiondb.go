@@ -36,18 +36,26 @@ type Transaction struct {
 }
 
 type TransactionInput struct {
-	ID       int64   `db:"id"`
-	TxID     string  `db:"tx_id"`
-	PrevTxID *string `db:"prev_tx_id"`
-	VoutIdx  uint32  `db:"vout_idx"`
-	Address  string  `db:"address"`
-	Amount   int64   `db:"amount"`
+	ID        int64   `db:"id"`
+	TxID      string  `db:"tx_id"`
+	PrevTxID  *string `db:"prev_tx_id"`
+	VoutIdx   uint32  `db:"vout_idx"`
+	Address   string  `db:"address"`
+	Amount    int64   `db:"amount"`
+	ScriptSig struct {
+		Address   string   `json:"address"`
+		Addresses []string `json:"addresses"`
+	} `json:"scriptSig"`
 }
 
 type TransactionOutput struct {
-	ID      int64  `db:"id"`
-	TxID    string `db:"tx_id"`
-	Address string `db:"address"`
-	Amount  int64  `db:"amount"`
-	VoutIdx uint32 `db:"vout_idx"`
+	ID           int64  `db:"id"`
+	TxID         string `db:"tx_id"`
+	VoutIdx      uint32 `db:"vout_idx"`
+	Address      string `db:"address"`
+	Amount       int64  `db:"amount"`
+	ScriptPubKey struct {
+		Address   string   `json:"address"`
+		Addresses []string `json:"addresses"`
+	} `json:"scriptPubKey"`
 }
