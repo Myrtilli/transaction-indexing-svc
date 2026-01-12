@@ -23,7 +23,7 @@ func (i *Indexer) SyncNextBlock() {
 	}
 
 	var rpcHash string
-	err = i.rpcClient.Call("getblockhash", []any{checkHeight}, &rpcHash)
+	err = i.caller.Call("getblockhash", []any{checkHeight}, &rpcHash)
 	if err != nil {
 		return
 	}
@@ -45,18 +45,18 @@ func (i *Indexer) SyncNextBlock() {
 	}
 
 	var nextBlockHash string
-	err = i.rpcClient.Call("getblockhash", []any{nextHeight}, &nextBlockHash)
+	err = i.caller.Call("getblockhash", []any{nextHeight}, &nextBlockHash)
 	if err != nil {
 		return
 	}
 
-	header, err := i.rpcClient.GetBlockHeader(nextBlockHash)
+	header, err := i.caller.GetBlockHeader(nextBlockHash)
 	if err != nil {
 		i.logger.WithField("height", nextHeight).WithError(err).Error("failed to fetch header")
 		return
 	}
 
-	txs, err := i.rpcClient.GetBlock(nextBlockHash)
+	txs, err := i.caller.GetBlock(nextBlockHash)
 	if err != nil {
 		i.logger.WithError(err).Error("failed to fetch block txs")
 		return
@@ -99,7 +99,7 @@ func (i *Indexer) processBlock(header *bitcoin.BlockHeader, txs []bitcoin.Transa
 		}
 
 		if tracked {
-			proof, err := i.rpcClient.GetTxOutProof(tx.TxID, header.BlockHash)
+			proof, err := i.caller.GetTxOutProof(tx.TxID, header.BlockHash)
 
 			entry := i.logger.WithField("tx_id", tx.TxID)
 

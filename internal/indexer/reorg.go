@@ -54,7 +54,7 @@ func (i *Indexer) FindCommonAncestor(newHeight int64) int64 {
 		}
 
 		var rpcHash string
-		err = i.rpcClient.Call("getblockhash", []interface{}{h}, &rpcHash)
+		err = i.caller.Call("getblockhash", []interface{}{h}, &rpcHash)
 		if err != nil {
 			i.logger.WithError(err).WithField("height", h).Error("failed to get block hash from RPC")
 			continue

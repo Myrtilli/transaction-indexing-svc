@@ -16,20 +16,20 @@ type Config struct {
 }
 
 type Indexer struct {
-	db        data.MasterQ
-	rpcClient *bitcoin.RPCClient
-	cfg       Config
-	logger    *logan.Entry
-	undoLog   *UndoLog
+	db      data.MasterQ
+	caller  bitcoin.Caller
+	cfg     Config
+	logger  *logan.Entry
+	undoLog *UndoLog
 }
 
-func New(logger *logan.Entry, db data.MasterQ, rpc *bitcoin.RPCClient, cfg Config) *Indexer {
+func New(logger *logan.Entry, db data.MasterQ, caller bitcoin.Caller, cfg Config) *Indexer {
 	return &Indexer{
-		logger:    logger.WithField("service", "indexer"),
-		db:        db,
-		rpcClient: rpc,
-		cfg:       cfg,
-		undoLog:   NewUndoLog(),
+		logger:  logger.WithField("service", "indexer"),
+		db:      db,
+		caller:  caller,
+		cfg:     cfg,
+		undoLog: NewUndoLog(),
 	}
 }
 

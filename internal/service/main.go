@@ -43,9 +43,12 @@ func (s *service) run(cfg config.Config) error {
 
 func newService(cfg config.Config) *service {
 	db := pg.NewMasterQ(cfg.DB())
+
 	rpc := bitcoin.NewRPCClient(cfg.NodeURL(), cfg.NodeUser(), cfg.NodePass())
 
-	idx := indexer.New(cfg.Log(), db, rpc, indexer.Config{
+	caller := bitcoin.Caller(rpc)
+
+	idx := indexer.New(cfg.Log(), db, caller, indexer.Config{
 		MaxReorgDepth: 6,
 		PollInterval:  cfg.IndexerPollInterval(),
 		StartHeight:   int(cfg.StartHeight()),

@@ -6,24 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"time"
 )
-
-type RPCClient struct {
-	URL      string
-	User     string
-	Password string
-	Client   *http.Client
-}
-
-func NewRPCClient(url, user, pass string) *RPCClient {
-	return &RPCClient{
-		URL:      url,
-		User:     user,
-		Password: pass,
-		Client:   &http.Client{Timeout: 10 * time.Second},
-	}
-}
 
 func (c *RPCClient) Call(method string, params []any, result any) error {
 	payload := map[string]any{
