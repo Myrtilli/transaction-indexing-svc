@@ -17,7 +17,6 @@ type Bitcoin interface {
 	NodePass() string
 	IndexerPollInterval() time.Duration
 	StartHeight() int64
-	ABC() string
 }
 
 type bitcoin struct {
@@ -33,7 +32,6 @@ type bitcoinConfig struct {
 	Pass         string        `figure:"pass"`
 	PollInterval time.Duration `figure:"poll_interval"`
 	StartHeight  int64         `figure:"start_height"`
-	ABC          string        `figure:"abc"`
 }
 
 func NewBitcoin(getter kv.Getter) Bitcoin {
@@ -81,8 +79,4 @@ func (b *bitcoin) StartHeight() int64 {
 
 func (b *bitcoin) UseNodeRPC() bool {
 	return b.BitcoinConfig().UseNodeRPC
-}
-
-func (b *bitcoin) ABC() string {
-	return b.BitcoinConfig().ABC
 }
