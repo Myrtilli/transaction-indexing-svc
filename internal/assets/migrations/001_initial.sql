@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS transaction_inputs (
     id SERIAL PRIMARY KEY,
     tx_id TEXT NOT NULL,
     prev_tx_id TEXT,
-    vout_idx INT NOT NULL,
+    vout_idx BIGINT NOT NULL,
     address TEXT,
     amount BIGINT DEFAULT 0
 );
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS transaction_outputs (
     tx_id TEXT NOT NULL,
     address TEXT NOT NULL,
     amount BIGINT NOT NULL,
-    vout_idx INT NOT NULL
+    vout_idx BIGINT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS utxos (
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS utxos (
     address_utxo  TEXT NOT NULL,
     address_id    bigint NOT NULL REFERENCES addresses(id) ON DELETE CASCADE,
     tx_id         text NOT NULL,
-    vout          int NOT NULL,
+    vout          bigint NOT NULL,
     amount        bigint NOT NULL,
     block_height  bigint NOT NULL REFERENCES block_headers(height) ON DELETE CASCADE,
     is_spent      boolean DEFAULT false,
