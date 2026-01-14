@@ -51,14 +51,9 @@ func newService(cfg config.Config) *service {
 		caller = rpc
 
 	} else {
-		p2pAddr := cfg.UrlP2p()
-		if p2pAddr == "" {
-			cfg.Log().Fatal("CRITICAL: P2P address from config is empty! Check your YAML and tags.")
-		}
-
-		caller, err = bitcoin.NewP2PCaller(p2pAddr, rpc)
+		caller, err = bitcoin.NewP2PCaller(cfg.UrlP2p(), rpc)
 		if err != nil {
-			cfg.Log().WithError(err).Fatal("CRITICAL: failed to create P2P caller")
+			cfg.Log().WithError(err).Fatal("failed to create P2P caller")
 		}
 	}
 

@@ -200,7 +200,7 @@ func parseTransaction(r *bytes.Reader) (Transaction, error) {
 	}
 
 	inCount, _ := readVarInt(tr)
-	for i := uint64(0); i < inCount; i++ {
+	for range inCount {
 		var in TxInput
 		prevHash := make([]byte, 32)
 		io.ReadFull(tr, prevHash)
@@ -223,7 +223,7 @@ func parseTransaction(r *bytes.Reader) (Transaction, error) {
 	}
 
 	outCount, _ := readVarInt(tr)
-	for i := uint64(0); i < outCount; i++ {
+	for i := range outCount {
 		var out TxOutput
 		var satoshis int64
 		binary.Read(tr, binary.LittleEndian, &satoshis)
@@ -237,8 +237,6 @@ func parseTransaction(r *bytes.Reader) (Transaction, error) {
 		out.Vout = int64(i)
 
 		tx.Outputs = append(tx.Outputs, out)
-
-		fmt.Printf("DEBUG: Found output with address: %s, value: %f\n", out.Address, out.Value)
 	}
 
 	var locktime uint32
@@ -315,7 +313,7 @@ func (p *P2PCaller) GetBlockHeader(hash string) (*BlockHeader, error) {
 }
 
 func (p *P2PCaller) GetTxOutProof(tx, bh string) ([]byte, error) {
-	return nil, fmt.Errorf("merkle proof not supported in p2p mode")
+	return p.rpc.GetTxOutProof(tx, bh)
 }
 
 var bech32Charset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
@@ -338,7 +336,7 @@ func bech32Polymod(values []byte) uint32 {
 	for _, v := range values {
 		b := chk >> 25
 		chk = ((chk & 0x1ffffff) << 5) ^ uint32(v)
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			if ((b >> i) & 1) == 1 {
 				chk ^= g[i]
 			}
@@ -420,7 +418,7 @@ func bech32Checksum(hrp string, data []byte) []byte {
 	integers = append(integers, []byte{0, 0, 0, 0, 0, 0}...)
 	polymod := bech32Polymod(integers) ^ 1
 	var res []byte
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		res = append(res, byte((polymod>>uint(5*(5-i)))&31))
 	}
 	return res
