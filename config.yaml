@@ -20,8 +20,10 @@ jwt_key:
   expiration:  "24h"
 
 bitcoin:
-  url: "url"
+  url_rpc: "http://127.0.0.1:18443"
+  url_p2p: "127.0.0.1:18444"
   user: "user"
   pass: "password"
   poll_interval: "5s"
   start_height: 100
+  node: false #true for rpc, false for p2p

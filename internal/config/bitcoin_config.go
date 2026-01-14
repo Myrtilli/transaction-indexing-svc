@@ -10,11 +10,14 @@ import (
 )
 
 type Bitcoin interface {
-	NodeURL() string
+	UseNodeRPC() bool
+	UrlRpc() string
+	UrlP2p() string
 	NodeUser() string
 	NodePass() string
 	IndexerPollInterval() time.Duration
 	StartHeight() int64
+	ABC() string
 }
 
 type bitcoin struct {
@@ -23,11 +26,14 @@ type bitcoin struct {
 }
 
 type bitcoinConfig struct {
-	URL          string        `figure:"url"`
+	UseNodeRPC   bool          `figure:"node_rpc"`
+	UrlRpc       string        `figure:"url_rpc"`
+	UrlP2p       string        `figure:"url_p2p"`
 	User         string        `figure:"user"`
 	Pass         string        `figure:"pass"`
 	PollInterval time.Duration `figure:"poll_interval"`
 	StartHeight  int64         `figure:"start_height"`
+	ABC          string        `figure:"abc"`
 }
 
 func NewBitcoin(getter kv.Getter) Bitcoin {
@@ -37,7 +43,7 @@ func NewBitcoin(getter kv.Getter) Bitcoin {
 }
 
 func (b *bitcoin) BitcoinConfig() *bitcoinConfig {
-	return b.once.Do(func() interface{} {
+	return b.once.Do(func() any {
 		var config bitcoinConfig
 		raw := kv.MustGetStringMap(b.getter, "bitcoin")
 		err := figure.Out(&config).From(raw).Please()
@@ -49,8 +55,12 @@ func (b *bitcoin) BitcoinConfig() *bitcoinConfig {
 	}).(*bitcoinConfig)
 }
 
-func (b *bitcoin) NodeURL() string {
-	return b.BitcoinConfig().URL
+func (b *bitcoin) UrlRpc() string {
+	return b.BitcoinConfig().UrlRpc
+}
+
+func (b *bitcoin) UrlP2p() string {
+	return b.BitcoinConfig().UrlP2p
 }
 
 func (b *bitcoin) NodeUser() string {
@@ -67,4 +77,12 @@ func (b *bitcoin) IndexerPollInterval() time.Duration {
 
 func (b *bitcoin) StartHeight() int64 {
 	return b.BitcoinConfig().StartHeight
+}
+
+func (b *bitcoin) UseNodeRPC() bool {
+	return b.BitcoinConfig().UseNodeRPC
+}
+
+func (b *bitcoin) ABC() string {
+	return b.BitcoinConfig().ABC
 }
