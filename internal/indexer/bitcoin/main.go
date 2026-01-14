@@ -23,6 +23,7 @@ func NewRPCClient(url, user, pass string) *RPCClient {
 
 type Caller interface {
 	Call(method string, params []any, result any) error
+	GetBlockHash(height int64) (string, error)
 	GetBlockHeader(hash string) (*BlockHeader, error)
 	GetBlock(hash string) ([]Transaction, error)
 	GetTxOutProof(txid, blockHash string) ([]byte, error)

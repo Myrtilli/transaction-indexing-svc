@@ -13,9 +13,11 @@ type BlockHeader struct {
 }
 
 type Transaction struct {
-	TxID    string     `json:"txid"`
-	Inputs  []TxInput  `json:"vin"`
-	Outputs []TxOutput `json:"vout"`
+	Version  int32      `json:"version"`
+	TxID     string     `json:"txid"`
+	Inputs   []TxInput  `json:"vin"`
+	Outputs  []TxOutput `json:"vout"`
+	Locktime int64      `json:"locktime"`
 }
 
 type TxInput struct {

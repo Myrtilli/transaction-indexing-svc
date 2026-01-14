@@ -65,3 +65,9 @@ func (c *RPCClient) GetTxOutProof(txid, blockhash string) ([]byte, error) {
 	}
 	return hex.DecodeString(proofHex)
 }
+
+func (c *RPCClient) GetBlockHash(height int64) (string, error) {
+	var hash string
+	err := c.Call("getblockhash", []any{height}, &hash)
+	return hash, err
+}

@@ -43,10 +43,24 @@ func (s *service) run(cfg config.Config) error {
 
 func newService(cfg config.Config) *service {
 	db := pg.NewMasterQ(cfg.DB())
+	rpc := bitcoin.NewRPCClient(cfg.UrlRpc(), cfg.NodeUser(), cfg.NodePass())
 
-	rpc := bitcoin.NewRPCClient(cfg.NodeURL(), cfg.NodeUser(), cfg.NodePass())
+	var caller bitcoin.Caller
+	var err error
+	if cfg.UseNodeRPC() {
+		caller = rpc
 
-	caller := bitcoin.Caller(rpc)
+	} else {
+		p2pAddr := cfg.UrlP2p()
+		if p2pAddr == "" {
+			cfg.Log().Fatal("CRITICAL: P2P address from config is empty! Check your YAML and tags.")
+		}
+
+		caller, err = bitcoin.NewP2PCaller(p2pAddr, rpc)
+		if err != nil {
+			cfg.Log().WithError(err).Fatal("CRITICAL: failed to create P2P caller")
+		}
+	}
 
 	idx := indexer.New(cfg.Log(), db, caller, indexer.Config{
 		MaxReorgDepth: 6,

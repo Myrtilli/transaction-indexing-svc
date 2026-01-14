@@ -22,8 +22,7 @@ func (i *Indexer) SyncNextBlock() {
 		checkHeight = tip.Height
 	}
 
-	var rpcHash string
-	err = i.caller.Call("getblockhash", []any{checkHeight}, &rpcHash)
+	rpcHash, err := i.caller.GetBlockHash(checkHeight)
 	if err != nil {
 		return
 	}
@@ -44,8 +43,7 @@ func (i *Indexer) SyncNextBlock() {
 		nextHeight = tip.Height + 1
 	}
 
-	var nextBlockHash string
-	err = i.caller.Call("getblockhash", []any{nextHeight}, &nextBlockHash)
+	nextBlockHash, err := i.caller.GetBlockHash(nextHeight)
 	if err != nil {
 		return
 	}
